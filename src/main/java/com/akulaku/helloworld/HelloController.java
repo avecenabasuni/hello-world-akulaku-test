@@ -10,8 +10,9 @@ public class HelloController {
         return "Hello, World! Welcome to my first Spring Boot application for Akulaku SRE";
     }
 
-    @GetMapping("/health")
-    public String health() {
-        return "OK";
-    }
+    // Health check is now handled by Spring Boot Actuator at:
+    //   /actuator/health
+    //   /actuator/health/liveness
+    //   /actuator/health/readiness
+    //   /actuator/prometheus (for metrics)
 }

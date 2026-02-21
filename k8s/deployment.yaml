@@ -15,12 +15,21 @@ spec:
       labels:
         app: hello-world
     spec:
+      terminationGracePeriodSeconds: 30
       containers:
         - name: hello-world
           image: hello-world-app:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 8080
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           resources:
             requests:
               memory: "128Mi"
@@ -28,15 +37,21 @@ spec:
             limits:
               memory: "256Mi"
               cpu: "500m"
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            failureThreshold: 30
+            periodSeconds: 2
           readinessProbe:
             httpGet:
-              path: /health
+              path: /actuator/health/readiness
               port: 8080
-            initialDelaySeconds: 10
+            initialDelaySeconds: 5
             periodSeconds: 5
           livenessProbe:
             httpGet:
-              path: /health
+              path: /actuator/health/liveness
               port: 8080
-            initialDelaySeconds: 15
+            initialDelaySeconds: 10
             periodSeconds: 10

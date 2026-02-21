@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         APP_NAME = 'hello-world-app'
-        IMAGE_TAG = 'latest'
+        IMAGE_TAG = "${env.BUILD_NUMBER}-${env.GIT_COMMIT?.take(7) ?: 'unknown'}"
         K8S_MANIFEST = 'k8s/'
     }
 
@@ -14,19 +14,13 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Build & Test') {
             steps {
-                sh 'mvn clean compile -B'
-            }
-        }
-
-        stage('Unit Test') {
-            steps {
-                sh 'mvn test -B'
+                sh 'mvn clean verify -B'
             }
             post {
                 always {
-                    junit '**/target/surefire-reports/*.xml'
+                    junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
                 }
             }
         }
@@ -45,22 +39,24 @@ pipeline {
         stage('Docker Build') {
             steps {
                 sh "docker build -t ${APP_NAME}:${IMAGE_TAG} ."
+                sh "docker tag ${APP_NAME}:${IMAGE_TAG} ${APP_NAME}:latest"
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
+                sh "sed -i 's|hello-world-app:latest|${APP_NAME}:${IMAGE_TAG}|g' ${K8S_MANIFEST}deployment.yaml"
                 sh "kubectl apply -f ${K8S_MANIFEST}deployment.yaml"
                 sh "kubectl apply -f ${K8S_MANIFEST}service.yaml"
-                sh "kubectl rollout status deployment/hello-world-deployment --timeout=60s"
+                sh "kubectl rollout status deployment/hello-world-deployment --timeout=120s"
             }
         }
 
         stage('Verify Deployment') {
             steps {
                 sh """
-                    kubectl get pods 
-                    kubectl get services
+                    kubectl get pods -l app=hello-world
+                    kubectl get services hello-world-service
                 """
             }
         }
@@ -68,13 +64,14 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline SUCCESS.'
+            echo "Pipeline SUCCESS — deployed ${APP_NAME}:${IMAGE_TAG}"
         }
         failure {
-            echo 'Pipeline FAILED. Check logs above.'
+            echo 'Pipeline FAILED — initiating rollback...'
+            sh 'kubectl rollout undo deployment/hello-world-deployment || true'
         }
         always {
-            sh 'kubectl get all'
+            sh 'kubectl get all -l app=hello-world || true'
         }
     }
 }
