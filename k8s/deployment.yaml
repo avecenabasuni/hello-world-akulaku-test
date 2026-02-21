@@ -30,6 +30,9 @@ spec:
             capabilities:
               drop:
                 - ALL
+          volumeMounts:
+            - name: tmp-volume
+              mountPath: /tmp
           resources:
             requests:
               memory: "128Mi"
@@ -55,3 +58,6 @@ spec:
               port: 8080
             initialDelaySeconds: 10
             periodSeconds: 10
+      volumes:
+        - name: tmp-volume
+          emptyDir: {}
