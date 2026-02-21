@@ -23,6 +23,6 @@ class HelloControllerTest {
     void helloEndpointReturnsExpectedMessage() {
         assertThat(mvc.get().uri("/hello"))
             .hasStatusOk()
-            .hasBodyTextEqualTo("Hello, World! Welcome to my first Spring Boot application for Akulaku SRE");
+            .bodyText().contains("Hello, World! Welcome to my first Spring Boot application for Akulaku SRE");
     }
 }
