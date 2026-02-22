@@ -15,7 +15,7 @@ Spring Boot application deployed on Kubernetes with Jenkins CI/CD pipeline.
 
 ## Project Structure
 
-```
+```text
 hello-world/
 ├── src/main/java/com/akulaku/helloworld/
 │   ├── HelloWorldApplication.java    # Main application
@@ -109,7 +109,7 @@ Access Jenkins at <http://localhost:9090>, create a Pipeline job pointing to thi
 
 ## CI/CD Pipeline Stages
 
-```
+```text
 Checkout → Build & Test → Package → Docker Build → Deploy to K8s → Verify
 ```
 
