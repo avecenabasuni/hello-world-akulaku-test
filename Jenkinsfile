@@ -64,10 +64,10 @@ pipeline {
 
     post {
         success {
-            echo "Pipeline SUCCESS — deployed ${APP_NAME}:${IMAGE_TAG}"
+            echo "Pipeline SUCCESS - deployed ${APP_NAME}:${IMAGE_TAG}"
         }
         failure {
-            echo 'Pipeline FAILED — initiating rollback...'
+            echo 'Pipeline FAILED - initiating rollback...'
             sh 'kubectl rollout undo deployment/hello-world-deployment || true'
         }
         always {
